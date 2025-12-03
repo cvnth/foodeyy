@@ -1,0 +1,182 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: url('../images/food-bg.png') center/cover no-repeat;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* MAIN LAYOUT */
+.main-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+/* LEFT SIDE */
+.left-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.logo img {
+  width: 300px;
+  margin-bottom: 2rem;
+}
+
+.left-content h2 {
+  font-size: 2rem;
+}
+
+.left-content p {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.promo-box {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  width: 80%;
+}
+
+.promo-box img {
+  width: 130px;
+  border-radius: 10px;
+  margin-right: 1rem;
+}
+
+.promo-text p {
+  background: #fa723c;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+/* RIGHT SIDE */
+.right-section {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* NAV */
+header {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+}
+
+nav ul {
+  display: flex;
+  gap: 25px;
+  list-style: none;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+nav ul li a:hover {
+  color: #ff7b00;
+}
+
+/* FORM POPUP */
+.form-popup {
+  position: absolute;
+  right: -600px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: right 0.6s ease, opacity 0.4s ease;
+  opacity: 0;
+  z-index: 10;
+}
+
+.form-popup.active {
+  right: 50%;
+  transform: translate(50%, -50%);
+  opacity: 1;
+}
+
+/* FORM BOX */
+.form-box {
+  background: rgba(240, 213, 195, 0.452);
+  padding: 2.5rem;
+  border-radius: 15px;
+  width: 380px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+  text-align: left;
+  
+}
+
+.form-box h2{
+  margin-bottom: 10%;
+}
+.form-logo {
+  text-align: center;
+  width: 120px;
+  margin-bottom: 1rem;
+}
+
+.input-group,
+.form-row {
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.btn {
+  width: 100%;
+  padding: 0.8rem;
+  background: #fa723c;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background: #ECC2AE;
+}
+
+.switch-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.switch-text a {
+  color: #28a745;
+  text-decoration: none;
+}
