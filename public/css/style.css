@@ -19,6 +19,59 @@ body {
   width: 100%;
 }
 
+/* =========================================
+   NOTIFICATION TOAST STYLES
+   ========================================= */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 9999; /* Ensure it floats above everything */
+    
+    /* Animation Start State */
+    transform: translateX(120%); /* Start off-screen right */
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    
+    /* Font & Border */
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    border-left: 5px solid #ccc;
+    min-width: 300px;
+}
+
+.toast-notification.show {
+    transform: translateX(0); /* Slide in */
+}
+
+/* Icon Style */
+.toast-notification i { 
+    font-size: 24px; 
+}
+
+/* Colors for Success vs Error */
+.toast-success { 
+    border-left-color: #27ae60; 
+    color: #27ae60; 
+}
+
+.toast-error { 
+    border-left-color: #e74c3c; 
+    color: #e74c3c; 
+}
+
+.toast-info { 
+    border-left-color: #3498db; 
+    color: #3498db; 
+}
+
 /* LEFT SIDE */
 .left-section {
   flex: 1;

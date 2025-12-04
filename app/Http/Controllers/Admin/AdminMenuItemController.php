@@ -5,16 +5,27 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MenuItemRequest;
 use App\Models\MenuItem;
-use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
 
 class AdminMenuItemController extends Controller
 {
+    // 1. Return the Blade View (UPDATED WITH STATS LOGIC)
     public function index()
     {
-        return view('admin.menu');
+        // Count total menu items
+        $totalItems = MenuItem::count();
+
+        // Count available items (assuming 'is_available' is 1/true)
+        $availableItems = MenuItem::where('is_available', true)->count();
+
+        // Count unique categories currently being used
+        $categoriesCount = MenuItem::distinct('category_id')->count('category_id');
+
+        // Pass these variables to the view
+        return view('admin.menu', compact('totalItems', 'availableItems', 'categoriesCount'));
     }
 
+    // 2. Return JSON Data for JS to load
     public function apiIndex()
     {
         $items = MenuItem::with('category')
@@ -24,6 +35,7 @@ class AdminMenuItemController extends Controller
         return response()->json(['success' => true, 'data' => $items]);
     }
 
+    // 3. Store (Create New)
     public function store(MenuItemRequest $request)
     {
         $data = $request->only([
@@ -34,6 +46,7 @@ class AdminMenuItemController extends Controller
             'category_id'
         ]);
 
+        // Defaults
         $data['is_available'] = true;
         $data['is_featured'] = false;
         $data['calories'] = 0;
@@ -54,8 +67,11 @@ class AdminMenuItemController extends Controller
         ], 201);
     }
 
-    public function update(MenuItemRequest $request, MenuItem $menuItem)
+    // 4. Update (Edit Existing)
+    public function update(MenuItemRequest $request, $id)
     {
+        $menuItem = MenuItem::findOrFail($id);
+
         $data = $request->only([
             'name',
             'description',
@@ -64,10 +80,12 @@ class AdminMenuItemController extends Controller
             'category_id'
         ]);
 
+        // Handle Image Update
         if ($request->hasFile('menu_image')) {
-
+            // Delete old image if it exists
             if ($menuItem->image_url) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $menuItem->image_url));
+                $oldPath = str_replace('/storage/', '', $menuItem->image_url);
+                Storage::disk('public')->delete($oldPath);
             }
 
             $path = $request->file('menu_image')->store('menu_images', 'public');
@@ -82,10 +100,14 @@ class AdminMenuItemController extends Controller
         ]);
     }
 
-    public function destroy(MenuItem $menuItem)
+    // 5. Delete
+    public function destroy($id)
     {
+        $menuItem = MenuItem::findOrFail($id);
+
         if ($menuItem->image_url) {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $menuItem->image_url));
+            $oldPath = str_replace('/storage/', '', $menuItem->image_url);
+            Storage::disk('public')->delete($oldPath);
         }
 
         $menuItem->delete();

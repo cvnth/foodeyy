@@ -15,17 +15,17 @@
         <div class="menu-stats">
             <div class="stat-item">
                 <span>Total Items:</span>
-                <span class="stat-badge" id="total-items">0</span>
+                <span class="stat-badge" id="total-items">{{ $totalItems ?? 0 }}</span>
             </div>
 
             <div class="stat-item">
                 <span>Available:</span>
-                <span class="stat-badge" id="available-items">0</span>
+                <span class="stat-badge" id="available-items">{{ $availableItems ?? 0 }}</span>
             </div>
 
             <div class="stat-item">
-                <span>Categories:</span>
-                <span class="stat-badge">5</span>
+                <span>Active Categories:</span>
+                <span class="stat-badge">{{ $categoriesCount ?? 0 }}</span>
             </div>
         </div>
     </div>
@@ -87,7 +87,6 @@
 
             <div class="modal-body">
 
-                <!-- BASIC INFORMATION -->
                 <div class="form-section">
                     <h4 class="form-section-title">Basic Information</h4>
 
@@ -141,7 +140,6 @@
                     </div>
                 </div>
 
-                <!-- IMAGE UPLOAD -->
                 <div class="form-section">
                     <h4 class="form-section-title">Item Image</h4>
 
@@ -180,7 +178,6 @@
                     </div>
                 </div>
 
-                <!-- ADDITIONAL SETTINGS -->
                 <div class="form-section">
                     <h4 class="form-section-title">Additional Settings</h4>
 

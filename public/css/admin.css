@@ -788,9 +788,38 @@ html, body {
     box-shadow: 0 4px 12px rgba(80, 57, 44, 0.15);
 }
 
-.btn-view { 
-    background: #50392c; 
-    color: white; 
+/* Soft Action Button Style */
+.btn-view {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%; /* Makes it a perfect circle */
+    background-color: #f3f4f6; /* Light gray background for harmony */
+    color: #6b7280; /* Soft gray icon color */
+    transition: all 0.3s ease;
+    text-decoration: none;
+    border: 1px solid transparent; /* Prevents layout shift on border changes */
+}
+
+/* Icon Sizing */
+.btn-view .material-icons {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Hover Effects */
+.btn-view:hover {
+    color: #ffffff; /* Icon turns white */
+    box-shadow: 0 4px 6px rgba(230, 126, 34, 0.25); /* Soft orange shadow */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+/* Active/Focus state for accessibility */
+.btn-view:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 .btn-edit { 
@@ -2028,3 +2057,4 @@ input:checked + .toggle-slider:before {
         padding: 20px;
     }
 }
+

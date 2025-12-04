@@ -5,15 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Cart extends Model
+class Favorite extends Model
 {
     use HasFactory;
 
-    // CRITICAL: These must be fillable to save data
+    // THIS LINE IS CRITICAL. If it is missing, nothing saves.
     protected $fillable = [
         'user_id', 
-        'menu_item_id', 
-        'quantity'
+        'menu_item_id'
     ];
 
     public function menuItem()

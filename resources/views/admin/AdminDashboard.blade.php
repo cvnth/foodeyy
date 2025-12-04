@@ -46,9 +46,7 @@
     </main>
 </div>
 
-{{-- Scripts --}}
-<script src="{{ asset('js/food-data.js') }}"></script>
-<script src="{{ asset('js/main.js') }}"></script>
+
 
 <script>
     window.currentAdmin = {

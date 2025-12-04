@@ -6,71 +6,268 @@
     <title>FoodHub - Order History</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    <style>
+        /* Helper for empty state */
+        .empty-state { text-align: center; padding: 50px 20px; color: #888; }
+        .empty-state i { font-size: 64px; margin-bottom: 15px; color: #ddd; }
+        .btn-browse { background: #e67e22; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; margin-top: 10px; }
+
+        /* --- RECEIPT MODAL CSS --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none; justify-content: center; align-items: center;
+            /* CRITICAL FIX: High Z-Index to show above sidebar */
+            z-index: 9999 !important; 
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .receipt-box {
+            background: white; width: 90%; max-width: 400px;
+            padding: 25px; border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            position: relative; transform: translateY(20px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .receipt-box { transform: translateY(0); }
+
+        .receipt-header { text-align: center; border-bottom: 2px dashed #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .receipt-header h2 { margin: 0; color: #e67e22; font-family: 'Courier New', monospace; font-weight: bold; }
+        .receipt-meta { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        
+        .receipt-items { max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+        .receipt-row span:first-child { color: #333; font-weight: 500; }
+        
+        .receipt-divider { border-top: 2px dashed #eee; margin: 10px 0; }
+        
+        .receipt-summary .row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; color: #666; }
+        .receipt-total { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: #333; margin-top: 10px; }
+        
+        .close-modal-btn {
+            position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;
+        }
+        .close-modal-btn:hover { color: #333; }
+
+        /* Make cards clickable */
+        .order-card { cursor: pointer; transition: transform 0.2s; }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    </style>
 </head>
 <body>
     <div class="container">
         @include('components.user.UserSidebar')
 
         <main class="main-content">
-            @include('components.user.UserHeader')
 
-            <!-- ORDER HISTORY PAGE – uses only existing CSS classes -->
-            <div class="p-8">
-
-                <!-- Page Title – reusing top-header style -->
-                <div class="top-header mb-8">
-                    <h1 class="text-4xl font-bold">Your Order History</h1>
+            <div class="orders-container">
+                <div class="top-header mb-6">
+                    <h1>Your Order History</h1>
                 </div>
 
-                <div class="space-y-8">
+                <div class="orders-grid">
+                    
+                    @forelse($orders as $order)
+                        @php
+                            $statusClass = match($order->status) {
+                                'completed' => 'status-delivered',
+                                'cancelled' => 'status-cancelled',
+                                default => 'status-pending'
+                            };
+                            $statusText = ucfirst($order->status);
+                            $firstItem = $order->items->first();
+                            $imageUrl = $firstItem && $firstItem->menuItem ? $firstItem->menuItem->image_url : null;
+                        @endphp
 
-                    <!-- ==== ORDER CARD (reuses existing .order-card from your CSS) ==== -->
-                    <div class="order-card">
-                        <!-- Image preview row (optional – you already have this in dashboard.css) -->
-                        <div class="order-card-image">
-                            <img src="https://images.unsplash.com/photo-1565299624946-b28f40dc2212?w=800" alt="Order">
-                            <div class="order-status-badge status-delivered">Delivered</div>
-                        </div>
-
-                        <div class="order-card-content">
-                            <div class="order-card-header">
-                                <div>
-                                    <div class="order-id">#ORD-2025-0481</div>
-                                    <div class="order-date">Delivered on Nov 18, 2025</div>
-                                </div>
-                                <div class="order-total text-2xl font-bold text-orange-600">₱987.00</div>
+                        <div class="order-card" onclick="showReceipt(this)" 
+                             data-json="{{ json_encode($order, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}">
+                            
+                            <div class="order-card-image">
+                                <img src="{{ $imageUrl ?? 'https://via.placeholder.com/500?text=Order' }}" 
+                                     alt="Order #{{ $order->id }}"
+                                     onerror="this.src='https://via.placeholder.com/500?text=No+Image'">
+                                <div class="order-status-badge {{ $statusClass }}">{{ $statusText }}</div>
                             </div>
 
-                            <div class="order-items-preview mt-4">
-                                <div class="order-item-preview">
-                                    <span class="order-item-name">2× Chicken Joy Bucket</span>
-                                    <span class="order-item-price">₱1,598.00</span>
-                                </div>
-                                <div class="order-item-preview">
-                                    <span class="order-item-name">1× Jolly Spaghetti</span>
-                                    <span class="order-item-price">₱55.00</span>
-                                </div>
-                            </div>
-
-                            <div class="order-card-footer">
-                                <div class="order-meta">
-                                    <div class="order-meta-item">
-                                        <span class="material-icons text-sm">store</span>
-                                        <span>Jollibee • SM North EDSA</span>
+                            <div class="order-card-content">
+                                <div class="order-card-header">
+                                    <div>
+                                        <div class="order-id">#ORD-{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <div class="order-date">
+                                            {{ $order->created_at->format('M d, Y • h:i A') }}
+                                        </div>
                                     </div>
+                                    <div class="order-total">₱{{ number_format($order->total_amount, 2) }}</div>
                                 </div>
-                                <button class="reorder-btn">
-                                    <span class="material-icons">refresh</span>
-                                    Reorder
-                                </button>
+
+                                <div class="order-items-preview">
+                                    @foreach($order->items->take(2) as $item)
+                                        <div class="order-item-preview">
+                                            <span class="order-item-name">
+                                                {{ $item->quantity }}× {{ $item->menuItem->name ?? 'Unknown Item' }}
+                                            </span>
+                                            <span class="order-item-price">₱{{ number_format($item->price * $item->quantity, 2) }}</span>
+                                        </div>
+                                    @endforeach
+                                    @if($order->items->count() > 2)
+                                        <div class="more-items">+ {{ $order->items->count() - 2 }} more items</div>
+                                    @endif
+                                </div>
+
+                                <div class="order-card-footer">
+                                    <div class="order-meta">
+                                        <div class="order-meta-item">
+                                            <i class="material-icons">
+                                                {{ $order->delivery_type == 'delivery' ? 'delivery_dining' : 'store' }}
+                                            </i>
+                                            <span style="text-transform: capitalize">{{ $order->delivery_type }}</span>
+                                        </div>
+                                        <div class="order-meta-item" style="margin-left: 10px;">
+                                            <i class="material-icons">payments</i>
+                                            <span style="text-transform: uppercase;">{{ $order->payment_method }}</span>
+                                        </div>
+                                    </div>
+                                    <span style="font-size: 0.8rem; color: #888;">Click to view receipt</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- End of one order card – duplicate as needed -->
+
+                    @empty
+                        <div style="grid-column: 1 / -1;" class="empty-state">
+                            <i class="material-icons">receipt_long</i>
+                            <h3>No orders yet</h3>
+                            <a href="{{ route('user.dashboard') }}" class="btn-browse">Browse Menu</a>
+                        </div>
+                    @endforelse
 
                 </div>
             </div>
         </main>
     </div>
+
+    <div class="modal-overlay" id="receiptModal" onclick="closeReceipt(event)">
+        <div class="receipt-box">
+            <button class="close-modal-btn" onclick="closeReceiptBtn()">×</button>
+            
+            <div class="receipt-header">
+                <h2>FOODEYY</h2>
+                <div class="receipt-meta">
+                    <p id="r-id">#ORD-000000</p>
+                    <p id="r-date">Oct 12, 2025 • 10:30 AM</p>
+                    <p id="r-status" style="font-weight: bold; margin-top: 5px;">COMPLETED</p>
+                </div>
+            </div>
+
+            <div class="receipt-items" id="r-items-list">
+                </div>
+
+            <div class="receipt-divider"></div>
+
+            <div class="receipt-summary">
+                <div class="row">
+                    <span>Subtotal</span>
+                    <span id="r-subtotal">₱0.00</span>
+                </div>
+                <div class="row">
+                    <span>Delivery Fee</span>
+                    <span id="r-delivery">₱0.00</span>
+                </div>
+                <div class="receipt-total">
+                    <span>TOTAL</span>
+                    <span id="r-total">₱0.00</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center; font-size: 0.8rem; color: #aaa;">
+                <p>Payment Method: <span id="r-method" style="text-transform: uppercase; color: #333;">COD</span></p>
+                <p>Thank you for ordering!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showReceipt(cardElement) {
+            try {
+                // 1. Get Data Safely
+                const jsonString = cardElement.getAttribute('data-json');
+                
+                if (!jsonString) {
+                    console.error("No JSON data found on card element");
+                    return;
+                }
+
+                const order = JSON.parse(jsonString);
+
+                // 2. Populate Header
+                document.getElementById('r-id').textContent = '#ORD-' + String(order.id).padStart(6, '0');
+                document.getElementById('r-date').textContent = new Date(order.created_at).toLocaleString();
+                document.getElementById('r-status').textContent = order.status ? order.status.toUpperCase() : 'UNKNOWN';
+                document.getElementById('r-method').textContent = order.payment_method;
+
+                // 3. Populate Items & Calculate Subtotal
+                const itemsContainer = document.getElementById('r-items-list');
+                itemsContainer.innerHTML = ''; // Clear old items
+                
+                let subtotal = 0;
+
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        const itemTotal = parseFloat(item.price) * parseInt(item.quantity);
+                        subtotal += itemTotal;
+                        const itemName = item.menu_item ? item.menu_item.name : 'Unknown Item';
+
+                        itemsContainer.innerHTML += `
+                            <div class="receipt-row">
+                                <span>${item.quantity}× ${itemName}</span>
+                                <span>₱${itemTotal.toFixed(2)}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    itemsContainer.innerHTML = '<p style="text-align:center; color:#ccc;">No items details available</p>';
+                }
+
+                // 4. Calculate Fee (Total Paid - Item Cost)
+                // This logic correctly calculates the delivery fee regardless of whether it was 49, 59, or 0.
+                const totalPaid = parseFloat(order.total_amount);
+                
+                // Calculate fee (ensure it's not negative due to floating point math)
+                let deliveryFee = Math.max(0, totalPaid - subtotal);
+                
+                // If it was pick-up, ensure 0.00
+                if(order.delivery_type !== 'delivery') {
+                    deliveryFee = 0.00;
+                }
+
+                // 5. Update UI
+                document.getElementById('r-subtotal').textContent = '₱' + subtotal.toFixed(2);
+                document.getElementById('r-delivery').textContent = '₱' + deliveryFee.toFixed(2);
+                document.getElementById('r-total').textContent = '₱' + totalPaid.toFixed(2);
+
+                // 6. Show Modal
+                const modal = document.getElementById('receiptModal');
+                modal.style.display = 'flex';
+                // Trigger reflow
+                void modal.offsetWidth;
+                modal.classList.add('active');
+            } catch (err) {
+                console.error("Error opening receipt:", err);
+                alert("Failed to open receipt. Please check console for details.");
+            }
+        }
+
+        function closeReceipt(e) {
+            // Close only if clicking the background overlay
+            if (e.target.id === 'receiptModal') {
+                closeReceiptBtn();
+            }
+        }
+
+        function closeReceiptBtn() {
+            const modal = document.getElementById('receiptModal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+    </script>
 </body>
 </html>

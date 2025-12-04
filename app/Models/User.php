@@ -15,8 +15,8 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
-        'phone',     // ← ADD THIS
-        'address',   // ← ADD THIS
+        'phone',
+        'address',
     ];
 
     protected $hidden = [
@@ -29,14 +29,17 @@ class User extends Authenticatable
         'is_admin'          => 'boolean',
     ];
 
-    // Add this to your User model
-        public function cart()
-        {
-            return $this->hasOne(Cart::class);
-        }
+    // ——————————————————————————————
+    // RELATIONSHIPS
+    // ——————————————————————————————
 
+    public function cart()
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class); 
+    }
 }
-
-
-
-

@@ -6,17 +6,10 @@
 @section('page-content')
     <div class="users-header">
         <h2>Manage Users</h2>
-        <div class="search-box">
-            <i class="material-icons">search</i>
-            <input type="text" id="search-users" placeholder="Search users...">
-        </div>
     </div>
 
     <div class="filter-buttons">
         <button class="filter-btn active" data-status="all">All Users</button>
-        <button class="filter-btn" data-status="active">Active</button>
-        <button class="filter-btn" data-status="inactive">Inactive</button>
-        <button class="filter-btn" data-status="suspended">Suspended</button>
     </div>
 
     <div class="users-table-container">
@@ -42,5 +35,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('admin/js/admin-users.js') }}"></script>
+<script src="{{ asset('js/admin/admin-users.js') }}"></script>
 @endpush

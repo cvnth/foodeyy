@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Foodeyy | Authentication</title>
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    
     <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
 </head>
 <body>
@@ -46,7 +49,7 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/include.js') }}"></script>
+    
     
     {{-- 🛑 INSERT THE NOTIFICATION SCRIPT HERE (RIGHT BEFORE </body>) 🛑 --}}
     <script>
@@ -64,6 +67,45 @@
         @if ($errors->any())
             showNotification("{{ $errors->first() }}", 'error'); 
         @endif
+
+        function showNotification(message, type = 'success') {
+            // 1. Remove any existing toast to prevent stacking (optional)
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) existingToast.remove();
+
+            // 2. Determine Icon based on type
+            let iconName = 'check_circle'; // Default success icon
+            if (type === 'error') iconName = 'error';
+            if (type === 'info') iconName = 'info';
+
+            // 3. Create the HTML Element
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+            
+            // Note: Assuming you have Material Icons loaded (which you do in dashboard layouts)
+            // If not, remove the <i> tag or use simple text/emoji like ✔ or ✖
+            toast.innerHTML = `
+                <i class="material-icons">${iconName}</i>
+                <span>${message}</span>
+            `;
+
+            // 4. Add to Document Body
+            document.body.appendChild(toast);
+
+            // 5. Trigger Animation (Small delay needed for CSS transition to catch)
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            // 6. Remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                // Wait for slide-out animation to finish before removing from DOM
+                setTimeout(() => {
+                    toast.remove();
+                }, 400); 
+            }, 4000);
+        }
     </script>
     {{-- END NOTIFICATION SCRIPT --}}
 </body>

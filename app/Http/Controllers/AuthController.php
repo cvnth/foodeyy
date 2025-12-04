@@ -21,7 +21,7 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    // Handle login — UNCHANGED (email + password only)
+    // Handle login
     public function login(Request $request)
     {
         $request->validate([
@@ -32,9 +32,10 @@ class AuthController extends Controller
         if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
             $request->session()->regenerate();
 
+            // Redirect with Success Flash Message
             return Auth::user()->is_admin
-                ? redirect()->intended('/admin/dashboard')
-                : redirect()->intended('/user/dashboard');
+                ? redirect()->intended('/admin/dashboard')->with('success', 'Welcome back, Admin!')
+                : redirect()->intended('/user/dashboard')->with('success', 'Logged in successfully!');
         }
 
         return back()
@@ -42,16 +43,16 @@ class AuthController extends Controller
             ->onlyInput('email');
     }
 
-    // Handle registration — NOW WITH PHONE & ADDRESS
+    // Handle registration
     public function register(Request $request)
     {
         $request->validate([
-            'name'                  => 'required|string|max:255',
-            'email'                 => 'required|email|unique:users,email',
-            'phone'                 => 'required|string|regex:/^09[0-9]{9}$/|size:11|unique:users,phone',
-            'address'               => 'required|string|max:500',
-            'password'              => 'required|min:8|confirmed',
-            'terms'                 => 'required|accepted',
+            'name'              => 'required|string|max:255',
+            'email'             => 'required|email|unique:users,email',
+            'phone'             => 'required|string|regex:/^09[0-9]{9}$/|size:11|unique:users,phone',
+            'address'           => 'required|string|max:500',
+            'password'          => 'required|min:8|confirmed',
+            'terms'             => 'required|accepted',
         ]);
 
         $user = User::create([
@@ -66,6 +67,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        // Redirect with Success Flash Message
         return redirect('/user/dashboard')
             ->with('success', 'Welcome, ' . $user->name . '! Your account has been created successfully.');
     }
