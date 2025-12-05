@@ -16,8 +16,9 @@ class AdminUsersController extends Controller
     public function apiIndex(Request $request)
 {
     // Initialize query
-    // You can uncomment ->withCount('orders') later when the Order model is ready
-    $query = User::query(); 
+    // ADD ->withCount('orders') here. 
+    // This creates an attribute "orders_count" in the JSON response.
+    $query = User::withCount('orders'); 
 
     // --- 1. EXCLUDE ADMINS ---
     $query->where('is_admin', 0); 
@@ -37,7 +38,6 @@ class AdminUsersController extends Controller
 
     return response()->json($users);
 }
-
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
