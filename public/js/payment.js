@@ -1,167 +1,83 @@
-// js/payment.js
-document.addEventListener('DOMContentLoaded', function() {
-    loadOrderSummary();
-    initPayment();
-});
+// public/js/payment.js
 
-function loadOrderSummary() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const orderItemsContainer = document.getElementById('order-items');
+let currentDeliveryType = 'delivery';
+let currentPaymentMethod = 'cod';
+
+// Access variables passed from Blade
+const SUBTOTAL = window.appConfig.subtotal;
+const DELIVERY_FEE = window.appConfig.deliveryFee;
+
+function setDeliveryType(type) {
+    currentDeliveryType = type;
+
+    // UI Updates
+    document.getElementById('opt-delivery').classList.toggle('active', type === 'delivery');
+    document.getElementById('opt-pickup').classList.toggle('active', type === 'pickup');
     
-    if (cart.length === 0) {
-        orderItemsContainer.innerHTML = '<p>No items in cart</p>';
+    // Show/Hide Address Form
+    const form = document.getElementById('delivery-form');
+    form.style.display = type === 'delivery' ? 'block' : 'none';
+
+    // Calculate Totals logic
+    const fee = type === 'delivery' ? DELIVERY_FEE : 0;
+    const total = SUBTOTAL + fee;
+
+    // Update Text
+    document.getElementById('summaryDeliveryFee').textContent = '₱' + fee.toFixed(2);
+    document.getElementById('summaryTotal').textContent = '₱' + total.toFixed(2);
+    document.getElementById('btnText').textContent = 'Place Order – ₱' + total.toFixed(2);
+}
+
+function setPaymentMethod(method) {
+    currentPaymentMethod = method;
+    document.getElementById('meth-cod').classList.toggle('active', method === 'cod');
+    document.getElementById('meth-gcash').classList.toggle('active', method === 'gcash');
+}
+
+function placeOrder() {
+    const btn = document.querySelector('.confirm-payment');
+    const address = document.getElementById('addressInput').value;
+    const instructions = document.getElementById('instructionsInput').value;
+
+    // Validation
+    if(currentDeliveryType === 'delivery' && !address.trim()) {
+        alert('Please enter your delivery address.');
         return;
     }
-    
-    orderItemsContainer.innerHTML = cart.map(item => `
-        <div class="order-item">
-            <span>${item.quantity}x ${item.name}</span>
-            <span>${item.price}</span>
-        </div>
-    `).join('');
-    
-    updateOrderSummaryForDelivery('delivery');
-}
 
-function updateOrderSummaryForDelivery(optionType) {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    const subtotal = cart.reduce((sum, item) => {
-        const price = parseInt(item.price.replace('₱', ''));
-        return sum + (price * item.quantity);
-    }, 0);
-    
-    const deliveryFee = optionType === 'delivery' ? 50 : 0;
-    const total = subtotal + deliveryFee;
-    
-    document.getElementById('order-subtotal').textContent = `₱${subtotal}`;
-    document.getElementById('order-delivery-fee').textContent = `₱${deliveryFee}`;
-    document.getElementById('order-total').textContent = `₱${total}`;
-}
+    // Disable button
+    btn.innerHTML = 'Processing...';
+    btn.disabled = true;
 
-function initPayment() {
-    // Delivery option selection
-    document.querySelectorAll('.delivery-option').forEach(option => {
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.delivery-option').forEach(o => o.classList.remove('active'));
-            this.classList.add('active');
-            
-            const optionType = this.getAttribute('data-option');
-            document.querySelectorAll('.delivery-form').forEach(form => form.classList.remove('active'));
-            document.getElementById(`${optionType}-form`).classList.add('active');
-            
-            updateOrderSummaryForDelivery(optionType);
-        });
-    });
-    
-    // Payment method selection
-    document.querySelectorAll('.payment-method').forEach(method => {
-        method.addEventListener('click', function() {
-            document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
-            this.classList.add('active');
-            
-            const methodType = this.getAttribute('data-method');
-            document.querySelectorAll('.payment-form').forEach(form => form.classList.remove('active'));
-            document.getElementById(`${methodType}-form`).classList.add('active');
-        });
-    });
-    
-    // Back to cart button
-    document.getElementById('back-to-cart').addEventListener('click', function() {
-        window.location.href = 'cart.html';
-    });
-    
-    // Confirm payment button
-    document.getElementById('confirm-payment').addEventListener('click', function() {
-        processPayment();
-    });
-}
-
-function processPayment() {
-    const selectedOption = document.querySelector('.delivery-option.active').getAttribute('data-option');
-    const selectedMethod = document.querySelector('.payment-method.active').getAttribute('data-method');
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    if (cart.length === 0) {
-        showNotification('Your cart is empty', 'warning');
-        return;
-    }
-    
-    // Validate form based on delivery option
-    let isValid = true;
-    if (selectedOption === 'delivery') {
-        const address = document.getElementById('address').value;
-        if (!address) {
-            isValid = false;
-            showNotification('Please enter your delivery address', 'error');
-        }
-    } else if (selectedOption === 'pickup') {
-        const pickupTime = document.getElementById('pickup-time').value;
-        if (!pickupTime) {
-            isValid = false;
-            showNotification('Please select a pick-up time', 'error');
-        }
-    }
-    
-    // Validate form based on payment method
-    if (selectedMethod === 'gcash') {
-        const gcashNumber = document.getElementById('gcash-number').value;
-        if (!gcashNumber) {
-            isValid = false;
-            showNotification('Please enter your GCash number', 'error');
-        }
-    }
-    
-    if (!isValid) return;
-    
-    // Simulate payment processing
-    showNotification('Processing your order...', 'info');
-    
-    setTimeout(() => {
-        // Create order
-        const orderId = 'ORD-' + Date.now().toString().slice(-6);
-        const order = {
-            id: orderId,
-            date: new Date().toISOString().split('T')[0],
-            status: 'pending',
-            items: cart,
-            deliveryOption: selectedOption,
-            paymentMethod: selectedMethod,
-            total: calculateOrderTotal(cart, selectedOption)
-        };
-        
-        // Save order to history
-        let orders = JSON.parse(localStorage.getItem('orders')) || [];
-        orders.unshift(order);
-        localStorage.setItem('orders', JSON.stringify(orders));
-        
-        // Clear cart
-        localStorage.setItem('cart', JSON.stringify([]));
-        updateCartCount();
-        
-        // Show success message
-        let successMessage = `Order #${orderId} has been placed successfully! `;
-        if (selectedOption === 'delivery') {
-            successMessage += 'Your food will be delivered within 30-45 minutes.';
+    // AJAX Request
+    fetch('/user/order/place', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            delivery_type: currentDeliveryType,
+            payment_method: currentPaymentMethod,
+            address: address,
+            instructions: instructions
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.redirect_url) {
+            alert('Order Placed Successfully!');
+            window.location.href = data.redirect_url;
         } else {
-            successMessage += 'Your order will be ready for pick-up at the selected time.';
+            alert('Error: ' + data.message);
+            btn.disabled = false;
+            btn.innerHTML = 'Try Again';
         }
-        
-        showNotification(successMessage, 'success');
-        
-        // Redirect to order history
-        setTimeout(() => {
-            window.location.href = 'orders.html';
-        }, 2000);
-    }, 2000);
-}
-
-function calculateOrderTotal(cart, optionType) {
-    const subtotal = cart.reduce((sum, item) => {
-        const price = parseInt(item.price.replace('₱', ''));
-        return sum + (price * item.quantity);
-    }, 0);
-    
-    const deliveryFee = optionType === 'delivery' ? 50 : 0;
-    return `₱${subtotal + deliveryFee}`;
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Something went wrong.');
+        btn.disabled = false;
+        btn.innerHTML = 'Try Again';
+    });
 }

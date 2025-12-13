@@ -24,11 +24,10 @@
 
         <li>
             <a href="{{ route('cart.index') }}"
-            class="{{ request()->routeIs('cart.*') ? 'active' : '' }}" style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center;">
+            class="{{ request()->routeIs('cart.*') ? 'active' : '' }}">
                     <i class="material-icons">shopping_cart</i>
                     <span>Cart</span>
-                </div>
+               
                 
                 <span id="globalCartCount" class="cart-badge" style="display: none;">0</span>
             </a>

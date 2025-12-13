@@ -6,79 +6,53 @@ use App\Http\Controllers\Controller;
 use App\Models\Favorite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log; // Import Log
 
 class FavoriteController extends Controller
 {
+    // 1. Show the Favorites Page
     public function index()
     {
-        return view('favorites');
+        return view('favorites'); // Ensure resources/views/user/favorites.blade.php exists
     }
 
+    // 2. Get Favorites JSON (for the Favorites Page)
     public function getFavoritesJson()
     {
-        if (!Auth::check()) {
-            return response()->json([]); // Return empty if not logged in
-        }
-
-        $favorites = Favorite::with('menuItem')
-            ->where('user_id', Auth::id())
+        $userId = Auth::id();
+        
+        $favorites = Favorite::where('user_id', $userId)
+            ->with('menuItem.category') // Load the menu item data
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Extract the menu items, removing any that might be null (deleted items)
         $items = $favorites->map(function ($fav) {
             return $fav->menuItem;
-        });
+        })->filter()->values(); // <--- Filter removes nulls, values resets keys
 
         return response()->json($items);
     }
 
+    // 3. Toggle Favorite (Add/Remove)
     public function toggle(Request $request)
     {
-        // 1. Check Login
         if (!Auth::check()) {
-            return response()->json(['message' => 'You must be logged in.'], 401);
+            return response()->json(['message' => 'Please login first'], 401);
         }
 
-        // 2. Debugging: Log what we received
-        Log::info('Favorite Toggle Request:', $request->all());
+        $request->validate(['menu_item_id' => 'required|exists:menu_items,id']);
+        
+        $userId = Auth::id();
+        $menuId = $request->menu_item_id;
 
-        try {
-            // 3. Validate
-            $request->validate([
-                'menu_item_id' => 'required|integer|exists:menu_items,id'
-            ]);
-            
-            $userId = Auth::id();
-            $menuId = $request->menu_item_id;
+        $exists = Favorite::where('user_id', $userId)->where('menu_item_id', $menuId)->first();
 
-            // 4. Check for existing
-            $exists = Favorite::where('user_id', $userId)
-                ->where('menu_item_id', $menuId)
-                ->first();
-
-            if ($exists) {
-                $exists->delete();
-                return response()->json(['status' => 'removed', 'message' => 'Removed from favorites']);
-            } else {
-                // 5. Create new
-                $fav = Favorite::create([
-                    'user_id' => $userId,
-                    'menu_item_id' => $menuId
-                ]);
-                
-                return response()->json([
-                    'status' => 'added', 
-                    'message' => 'Added to favorites',
-                    'debug' => $fav // Send back the created object to verify
-                ]);
-            }
-
-        } catch (\Exception $e) {
-            // 6. Return exact error to browser
-            return response()->json([
-                'message' => 'Database Error: ' . $e->getMessage()
-            ], 500);
+        if ($exists) {
+            $exists->delete();
+            return response()->json(['status' => 'removed', 'message' => 'Removed from favorites']);
+        } else {
+            Favorite::create(['user_id' => $userId, 'menu_item_id' => $menuId]);
+            return response()->json(['status' => 'added', 'message' => 'Added to favorites']);
         }
     }
 }

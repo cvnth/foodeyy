@@ -6,8 +6,53 @@
     <title>Foodeyy | Authentication</title>
     
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-    
     <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
+    
+    <style>
+        .toast-notification {
+            position: fixed;
+            top: 20px; /* Moved to top-right for better visibility */
+            right: 20px;
+            background: #ffffff;
+            padding: 12px 24px; /* Smaller padding */
+            border-radius: 50px; /* Pill shape */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 99999;
+            
+            /* CRITICAL: Force compact size */
+            width: auto; 
+            max-width: 350px;
+            height: auto;
+            min-height: auto;
+            
+            /* Animation State: Hidden */
+            transform: translateX(120%); 
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Animation State: Visible */
+        .toast-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        /* Colors & Fonts */
+        .toast-notification span {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .toast-notification i { font-size: 20px; }
+        .toast-success i { color: #10b981; } /* Green */
+        .toast-error i { color: #ef4444; }   /* Red */
+        .toast-info i { color: #3b82f6; }    /* Blue */
+    </style>
 </head>
 <body>
     <div class="main-container">
@@ -49,64 +94,17 @@
         </div>
     </div>
 
-    
-    
-    {{-- 🛑 INSERT THE NOTIFICATION SCRIPT HERE (RIGHT BEFORE </body>) 🛑 --}}
     <script>
-        // This script reads the session flashes set by the AuthController
-
-        @if (session('success'))
-            showNotification("{{ session('success') }}", 'success');
-        @endif
-
-        @if (session('error'))
-            showNotification("{{ session('error') }}", 'error');
-        @endif
-
-        // Display validation errors (e.g., "The email field is required")
-        @if ($errors->any())
-            showNotification("{{ $errors->first() }}", 'error'); 
-        @endif
-
-        function showNotification(message, type = 'success') {
-            // 1. Remove any existing toast to prevent stacking (optional)
-            const existingToast = document.querySelector('.toast-notification');
-            if (existingToast) existingToast.remove();
-
-            // 2. Determine Icon based on type
-            let iconName = 'check_circle'; // Default success icon
-            if (type === 'error') iconName = 'error';
-            if (type === 'info') iconName = 'info';
-
-            // 3. Create the HTML Element
-            const toast = document.createElement('div');
-            toast.className = `toast-notification toast-${type}`;
-            
-            // Note: Assuming you have Material Icons loaded (which you do in dashboard layouts)
-            // If not, remove the <i> tag or use simple text/emoji like ✔ or ✖
-            toast.innerHTML = `
-                <i class="material-icons">${iconName}</i>
-                <span>${message}</span>
-            `;
-
-            // 4. Add to Document Body
-            document.body.appendChild(toast);
-
-            // 5. Trigger Animation (Small delay needed for CSS transition to catch)
-            requestAnimationFrame(() => {
-                toast.classList.add('show');
-            });
-
-            // 6. Remove after 4 seconds
-            setTimeout(() => {
-                toast.classList.remove('show');
-                // Wait for slide-out animation to finish before removing from DOM
-                setTimeout(() => {
-                    toast.remove();
-                }, 400); 
-            }, 4000);
-        }
+        window.authConfig = {
+            session: {
+                success: "{{ session('success') }}",
+                error: "{{ session('error') }}"
+            },
+            // Pass the first validation error if any exist
+            errors: "{{ $errors->any() ? $errors->first() : '' }}"
+        };
     </script>
-    {{-- END NOTIFICATION SCRIPT --}}
+
+    <script src="{{ asset('js/auth.js') }}"></script>
 </body>
 </html>

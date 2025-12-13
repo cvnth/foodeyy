@@ -1,118 +1,142 @@
-// js/favorites.js
-document.addEventListener('DOMContentLoaded', function() {
+// public/js/favorites.js
+
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+document.addEventListener('DOMContentLoaded', () => {
     loadFavorites();
 });
 
+// 1. Load Data
 function loadFavorites() {
-    const favoritesGrid = document.getElementById('favorites-grid');
-    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    
-    if (favorites.length === 0) {
-        favoritesGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                <i class="material-icons" style="font-size: 64px; color: #bdc3c7; margin-bottom: 20px;">favorite_border</i>
-                <h3 style="color: #7f8c8d; margin-bottom: 10px;">No favorites yet</h3>
-                <p style="color: #95a5a6;">Start adding your favorite foods from the dashboard!</p>
-                <a href="index.html" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 20px;">
-                    Browse Foods
-                </a>
-            </div>
-        `;
-        return;
-    }
-    
-    favoritesGrid.innerHTML = favorites.map(food => `
-        <div class="food-card" data-food-id="${food.id}">
-            <img src="${food.image}" alt="${food.name}">
-            <div class="food-info">
-                <h3>${food.name}</h3>
-                <p>${food.price}</p>
-                <div class="food-meta">
-                    <div class="rating">
-                        ${generateStarRating(food.rating)}
-                        <span>(${food.reviews})</span>
-                    </div>
-                    <div>
-                        <button class="favorite-btn active"><i class="material-icons">favorite</i></button>
-                        <button class="add-to-cart"><i class="material-icons">add_shopping_cart</i> Add</button>
+    const grid = document.getElementById('favoritesGrid');
+    const loading = document.getElementById('loading');
+    const empty = document.getElementById('emptyState');
+
+    fetch('/user/favorites/json')
+        .then(res => res.json())
+        .then(data => {
+            loading.style.display = 'none';
+            
+            if (data.length === 0) {
+                grid.style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            grid.style.display = 'grid'; // Ensures CSS grid applies
+            
+            grid.innerHTML = data.map(item => `
+                <div class="food-card relative transition-all duration-300" id="card-${item.id}">
+                    <img src="${item.image_url || 'https://via.placeholder.com/500'}" 
+                         alt="${item.name}" 
+                         onerror="this.src='https://via.placeholder.com/500?text=No+Image'" />
+                    
+                    <div class="food-info">
+                        <h3>${item.name}</h3>
+                        <p>₱${parseFloat(item.price).toFixed(2)}</p>
+                        <div class="food-meta">
+                            <div class="rating">
+                                ${generateStars(item.rating || 5)}
+                                <span>(${item.review_count || 0})</span>
+                            </div>
+                            <div>
+                                <button class="favorite-btn" 
+                                        style="color: #ef4444;"
+                                        onclick="removeFavorite(${item.id})"
+                                        title="Remove from favorites">
+                                    <i class="material-icons">favorite</i>
+                                </button>
+                                
+                                <button class="add-to-cart" onclick="addToCart(${item.id}, '${item.name}')">
+                                    <i class="material-icons">add_shopping_cart</i> Add
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `).join('');
-    
-    // Reattach event listeners
-    initFavoritesInteractions();
+            `).join('');
+        })
+        .catch(err => console.error(err));
 }
 
-function initFavoritesInteractions() {
-    // Add to cart functionality
-    document.querySelectorAll('.add-to-cart').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const card = this.closest('.food-card');
-            const foodId = card.getAttribute('data-food-id');
-            const foodData = getFoodDataById(foodId);
-            
-            addItemToCart(foodData, 1);
-            showAddToCartFeedback(this);
-        });
-    });
-    
-    // Remove from favorites functionality
-    document.querySelectorAll('.favorite-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const card = this.closest('.food-card');
-            const foodId = card.getAttribute('data-food-id');
-            const foodData = getFoodDataById(foodId);
-            
-            toggleFavorite(foodData, this);
-            // Remove card from DOM after a short delay
+// 2. Remove Function
+function removeFavorite(id) {
+    if(!confirm('Remove this item from your favorites?')) return;
+
+    fetch('/user/favorites/toggle', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': CSRF_TOKEN
+        },
+        body: JSON.stringify({ menu_item_id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Animate removal
+        const card = document.getElementById(`card-${id}`);
+        if(card) {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
             setTimeout(() => {
                 card.remove();
-                // Reload if no favorites left
-                const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-                if (favorites.length === 0) {
-                    loadFavorites();
+                // Check if grid is empty now
+                if(document.getElementById('favoritesGrid').children.length === 0) {
+                    document.getElementById('favoritesGrid').style.display = 'none';
+                    document.getElementById('emptyState').style.display = 'block';
                 }
             }, 300);
-        });
-    });
-    
-    // Food card click for details
-    document.querySelectorAll('.food-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            if (!e.target.closest('.add-to-cart') && !e.target.closest('.favorite-btn')) {
-                const foodId = this.getAttribute('data-food-id');
-                // You can implement a modal similar to dashboard.js
-                showNotification('Food details would open here', 'info');
-            }
-        });
-    });
+            showNotification("Removed from favorites", "info");
+        }
+    })
+    .catch(err => showNotification("Error removing item", "error"));
 }
 
-function toggleFavorite(foodData, button) {
-    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    const index = favorites.findIndex(f => f.id === foodData.id);
+// 3. Add to Cart Function
+function addToCart(id, name) {
+    showNotification(`Adding ${name}...`, 'info');
     
-    if (index !== -1) {
-        favorites.splice(index, 1);
-        showNotification(`${foodData.name} removed from favorites`, 'info');
+    fetch('/user/cart/add', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json', 
+            'X-CSRF-TOKEN': CSRF_TOKEN 
+        },
+        body: JSON.stringify({ 
+            menu_item_id: id, 
+            quantity: 1 
+        })
+    })
+    .then(async res => {
+        if (!res.ok) throw new Error('Failed');
+        showNotification(`Added ${name} to cart!`, 'success');
+        // Update badge if you have one in sidebar
+        if(window.parent && window.parent.updateCartBadge) {
+            window.parent.updateCartBadge();
+        }
+    })
+    .catch(err => showNotification('Error adding to cart', 'error'));
+}
+
+// 4. Notification Helper
+function showNotification(message, type = 'success') {
+    const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-gray-600' };
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-5 right-5 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-xl z-50 transition-all duration-300 translate-y-10 opacity-0`;
+    toast.innerHTML = `<span class="font-medium text-sm">${message}</span>`;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+    setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+// 5. Star Helper
+function generateStars(rating) {
+    let stars = '';
+    for(let i=1; i<=5; i++) {
+        stars += i <= rating 
+            ? '<i class="material-icons" style="color:#f59e0b; font-size:16px;">star</i>' 
+            : '<i class="material-icons" style="color:#d1d5db; font-size:16px;">star_border</i>';
     }
-    
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    updateFavoritesCount();
-}
-
-function showAddToCartFeedback(button) {
-    const originalHTML = button.innerHTML;
-    button.innerHTML = '<i class="material-icons">check</i> Added';
-    button.style.backgroundColor = '#4CAF50';
-    button.disabled = true;
-    setTimeout(() => {
-        button.innerHTML = originalHTML;
-        button.style.backgroundColor = '';
-        button.disabled = false;
-    }, 1500);
+    return stars;
 }

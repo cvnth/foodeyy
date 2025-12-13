@@ -18,12 +18,6 @@ use App\Http\Controllers\Admin\AdminSalesController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
 // ====================================================
 //  PUBLIC ROUTES
 // ====================================================
@@ -49,6 +43,7 @@ Route::middleware('auth')->group(function () {
     // 1. Dashboard & Menu
     Route::get('/user/dashboard', [UserDashboardController::class, 'index'])->name('user.dashboard');
     Route::get('/user/menu/json', [UserDashboardController::class, 'getMenuJson'])->name('user.menu.json');
+    Route::post('/user/rate-item', [UserDashboardController::class, 'rateItem'])->middleware('auth');
 
     // 2. Favorites
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');

@@ -9,14 +9,12 @@ class Favorite extends Model
 {
     use HasFactory;
 
-    // THIS LINE IS CRITICAL. If it is missing, nothing saves.
-    protected $fillable = [
-        'user_id', 
-        'menu_item_id'
-    ];
+    protected $fillable = ['user_id', 'menu_item_id'];
 
+    // --- ADD THIS FUNCTION ---
     public function menuItem()
     {
-        return $this->belongsTo(MenuItem::class);
+        // This tells Laravel that 'menu_item_id' links to the MenuItem model
+        return $this->belongsTo(MenuItem::class, 'menu_item_id');
     }
 }

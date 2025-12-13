@@ -1,133 +1,118 @@
-// js/cart.js
-document.addEventListener('DOMContentLoaded', function() {
+// public/js/cart.js
+
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+// Use the dynamic fee passed from Blade, default to 49 if missing
+const DELIVERY_FEE = window.appConfig.deliveryFee || 49.00;
+
+document.addEventListener('DOMContentLoaded', () => {
     loadCart();
-    initCheckoutButton();
 });
 
+// 1. LOAD CART
 function loadCart() {
-    const cartItemsContainer = document.getElementById('cart-items');
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    if (cart.length === 0) {
-        cartItemsContainer.innerHTML = `
+    fetch('/user/cart/json')
+        .then(res => res.json())
+        .then(data => {
+            renderCartItems(data.items);
+            
+            // Calculate subtotal from items to ensure accuracy
+            let calculatedSubtotal = 0;
+            if(data.items && data.items.length > 0) {
+                calculatedSubtotal = data.items.reduce((sum, item) => {
+                    return sum + (parseFloat(item.menu_item.price) * parseInt(item.quantity));
+                }, 0);
+            }
+
+            updateSummary(calculatedSubtotal);
+        })
+        .catch(err => console.error(err));
+}
+
+// 2. RENDER ITEMS
+function renderCartItems(items) {
+    const container = document.getElementById('cartItemsList');
+    document.getElementById('cartCount').textContent = `(${items.length} items)`;
+
+    if (items.length === 0) {
+        container.innerHTML = `
             <div style="text-align: center; padding: 40px;">
-                <i class="material-icons" style="font-size: 64px; color: #bdc3c7; margin-bottom: 20px;">shopping_cart</i>
-                <h3 style="color: #7f8c8d; margin-bottom: 10px;">Your cart is empty</h3>
-                <p style="color: #95a5a6;">Add some delicious food from our menu!</p>
-                <a href="index.html" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 20px;">
-                    Browse Menu
-                </a>
-            </div>
-        `;
-        updateCartSummary([]);
+                <i class="material-icons" style="font-size: 48px; color: #ddd;">shopping_cart</i>
+                <p style="color: #888; margin-top: 10px;">Your cart is empty.</p>
+                <a href="/user/dashboard" style="color: #e67e22; font-weight: bold;">Go to Menu</a>
+            </div>`;
+        
+        // If empty, reset summary
+        updateSummary(0);
         return;
     }
-    
-    cartItemsContainer.innerHTML = cart.map(item => `
-        <div class="cart-item" data-food-id="${item.id}">
-            <img src="${item.image}" alt="${item.name}">
-            <div class="cart-item-details">
-                <h4>${item.name}</h4>
-                <div class="cart-item-price">${item.price}</div>
+
+    container.innerHTML = items.map(item => `
+        <div class="cart-item" id="cart-item-${item.id}">
+            <img src="${item.menu_item.image_url || 'https://via.placeholder.com/500'}" 
+                 alt="${item.menu_item.name}"
+                 onerror="this.src='https://via.placeholder.com/500?text=No+Image'">
+            
+            <div class="item-details">
+                <h3>${item.menu_item.name}</h3>
+                <p class="price">₱${parseFloat(item.menu_item.price).toFixed(2)}</p>
             </div>
-            <div class="cart-item-controls modern">
-                <div class="quantity-controls">
-                    <button class="quantity-btn minus" data-item-id="${item.id}">
-                        <i class="material-icons">remove</i>
-                    </button>
-                    <span class="quantity">${item.quantity}</span>
-                    <button class="quantity-btn plus" data-item-id="${item.id}">
-                        <i class="material-icons">add</i>
-                    </button>
-                </div>
-                <button class="remove-btn modern" data-item-id="${item.id}">
-                    <i class="material-icons">delete</i>
-                    <span>Remove</span>
-                </button>
+            
+            <div class="quantity-controls">
+                <button class="qty-btn minus" onclick="updateQty(${item.id}, ${item.quantity - 1})">-</button>
+                <span>${item.quantity}</span>
+                <button class="qty-btn plus" onclick="updateQty(${item.id}, ${item.quantity + 1})">+</button>
             </div>
+            
+            <div class="item-total">₱${(item.menu_item.price * item.quantity).toFixed(2)}</div>
+            
+            <button class="remove-btn" onclick="removeItem(${item.id})">
+                <i class="material-icons">close</i>
+            </button>
         </div>
     `).join('');
-    
-    // Add event listeners for cart controls
-    initCartControls();
-    updateCartSummary(cart);
 }
 
-function initCartControls() {
-    // Quantity buttons
-    document.querySelectorAll('.cart-item .quantity-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const cartItem = this.closest('.cart-item');
-            const foodId = cartItem.getAttribute('data-food-id');
-            const quantityElement = cartItem.querySelector('.quantity');
-            let quantity = parseInt(quantityElement.textContent);
-            
-            if (this.classList.contains('plus')) {
-                quantity++;
-            } else if (this.classList.contains('minus') && quantity > 1) {
-                quantity--;
-            }
-            
-            quantityElement.textContent = quantity;
-            updateCartItemQuantity(foodId, quantity);
-        });
-    });
+// 3. UPDATE SUMMARY (Uses Dynamic Fee)
+function updateSummary(subtotalInput) {
+    const subtotal = parseFloat(subtotalInput);
     
-    // Remove buttons
-    document.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const cartItem = this.closest('.cart-item');
-            const foodId = cartItem.getAttribute('data-food-id');
-            removeFromCart(foodId);
-        });
-    });
+    // Logic: If cart is empty, fee is 0. If cart has items, fee is the global setting.
+    const currentFee = subtotal > 0 ? DELIVERY_FEE : 0;
+    const total = subtotal + currentFee;
+    
+    document.getElementById('summarySubtotal').textContent = `₱${subtotal.toFixed(2)}`;
+    document.getElementById('summaryDelivery').textContent = `₱${currentFee.toFixed(2)}`;
+    document.getElementById('summaryTotal').textContent = `₱${total.toFixed(2)}`;
 }
 
-function updateCartItemQuantity(foodId, quantity) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const item = cart.find(item => item.id == foodId);
-    
-    if (item) {
-        item.quantity = quantity;
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
-        updateCartSummary(cart);
-    }
+// 4. UPDATE QUANTITY
+function updateQty(id, newQty) {
+    if (newQty < 1) return; 
+
+    fetch(`/user/cart/update/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+        body: JSON.stringify({ quantity: newQty })
+    }).then(() => loadCart());
 }
 
-function removeFromCart(foodId) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    cart = cart.filter(item => item.id != foodId);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    loadCart();
-    showNotification('Item removed from cart', 'info');
+// 5. REMOVE ITEM
+function removeItem(id) {
+    if(!confirm('Remove this item?')) return;
+
+    fetch(`/user/cart/remove/${id}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': CSRF_TOKEN }
+    }).then(() => loadCart());
 }
 
-function updateCartSummary(cart) {
-    const subtotal = cart.reduce((sum, item) => {
-        const price = parseInt(item.price.replace('₱', ''));
-        return sum + (price * item.quantity);
-    }, 0);
-    
-    const deliveryFee = 50;
-    const tax = 0;
-    const total = subtotal + deliveryFee + tax;
-    
-    document.getElementById('subtotal').textContent = `₱${subtotal}`;
-    document.getElementById('tax').textContent = `₱${tax}`;
-    document.getElementById('total').textContent = `₱${total}`;
-}
+// 6. CLEAR CART
+function clearCart() {
+    if(!confirm('Clear your entire cart?')) return;
 
-function initCheckoutButton() {
-    document.getElementById('checkout-btn').addEventListener('click', function() {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        if (cart.length === 0) {
-            showNotification('Your cart is empty', 'warning');
-            return;
-        }
-        
-        // Redirect to payment page
-        window.location.href = 'payment.html';
-    });
+    fetch('/user/cart/clear', {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': CSRF_TOKEN }
+    }).then(() => loadCart());
 }

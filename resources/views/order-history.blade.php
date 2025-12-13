@@ -7,17 +7,15 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     <style>
-        /* Helper for empty state */
         .empty-state { text-align: center; padding: 50px 20px; color: #888; }
         .empty-state i { font-size: 64px; margin-bottom: 15px; color: #ddd; }
         .btn-browse { background: #e67e22; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; margin-top: 10px; }
 
-        /* --- RECEIPT MODAL CSS --- */
+        /* Receipt Modal CSS */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6);
             display: none; justify-content: center; align-items: center;
-            /* CRITICAL FIX: High Z-Index to show above sidebar */
             z-index: 9999 !important; 
             opacity: 0; transition: opacity 0.3s ease;
         }
@@ -49,7 +47,6 @@
         }
         .close-modal-btn:hover { color: #333; }
 
-        /* Make cards clickable */
         .order-card { cursor: pointer; transition: transform 0.2s; }
         .order-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
     </style>
@@ -59,14 +56,12 @@
         @include('components.user.UserSidebar')
 
         <main class="main-content">
-
             <div class="orders-container">
                 <div class="top-header mb-6">
                     <h1>Your Order History</h1>
                 </div>
 
                 <div class="orders-grid">
-                    
                     @forelse($orders as $order)
                         @php
                             $statusClass = match($order->status) {
@@ -139,7 +134,6 @@
                             <a href="{{ route('user.dashboard') }}" class="btn-browse">Browse Menu</a>
                         </div>
                     @endforelse
-
                 </div>
             </div>
         </main>
@@ -158,8 +152,7 @@
                 </div>
             </div>
 
-            <div class="receipt-items" id="r-items-list">
-                </div>
+            <div class="receipt-items" id="r-items-list"></div>
 
             <div class="receipt-divider"></div>
 
@@ -185,89 +178,6 @@
         </div>
     </div>
 
-    <script>
-        function showReceipt(cardElement) {
-            try {
-                // 1. Get Data Safely
-                const jsonString = cardElement.getAttribute('data-json');
-                
-                if (!jsonString) {
-                    console.error("No JSON data found on card element");
-                    return;
-                }
-
-                const order = JSON.parse(jsonString);
-
-                // 2. Populate Header
-                document.getElementById('r-id').textContent = '#ORD-' + String(order.id).padStart(6, '0');
-                document.getElementById('r-date').textContent = new Date(order.created_at).toLocaleString();
-                document.getElementById('r-status').textContent = order.status ? order.status.toUpperCase() : 'UNKNOWN';
-                document.getElementById('r-method').textContent = order.payment_method;
-
-                // 3. Populate Items & Calculate Subtotal
-                const itemsContainer = document.getElementById('r-items-list');
-                itemsContainer.innerHTML = ''; // Clear old items
-                
-                let subtotal = 0;
-
-                if (order.items && order.items.length > 0) {
-                    order.items.forEach(item => {
-                        const itemTotal = parseFloat(item.price) * parseInt(item.quantity);
-                        subtotal += itemTotal;
-                        const itemName = item.menu_item ? item.menu_item.name : 'Unknown Item';
-
-                        itemsContainer.innerHTML += `
-                            <div class="receipt-row">
-                                <span>${item.quantity}× ${itemName}</span>
-                                <span>₱${itemTotal.toFixed(2)}</span>
-                            </div>
-                        `;
-                    });
-                } else {
-                    itemsContainer.innerHTML = '<p style="text-align:center; color:#ccc;">No items details available</p>';
-                }
-
-                // 4. Calculate Fee (Total Paid - Item Cost)
-                // This logic correctly calculates the delivery fee regardless of whether it was 49, 59, or 0.
-                const totalPaid = parseFloat(order.total_amount);
-                
-                // Calculate fee (ensure it's not negative due to floating point math)
-                let deliveryFee = Math.max(0, totalPaid - subtotal);
-                
-                // If it was pick-up, ensure 0.00
-                if(order.delivery_type !== 'delivery') {
-                    deliveryFee = 0.00;
-                }
-
-                // 5. Update UI
-                document.getElementById('r-subtotal').textContent = '₱' + subtotal.toFixed(2);
-                document.getElementById('r-delivery').textContent = '₱' + deliveryFee.toFixed(2);
-                document.getElementById('r-total').textContent = '₱' + totalPaid.toFixed(2);
-
-                // 6. Show Modal
-                const modal = document.getElementById('receiptModal');
-                modal.style.display = 'flex';
-                // Trigger reflow
-                void modal.offsetWidth;
-                modal.classList.add('active');
-            } catch (err) {
-                console.error("Error opening receipt:", err);
-                alert("Failed to open receipt. Please check console for details.");
-            }
-        }
-
-        function closeReceipt(e) {
-            // Close only if clicking the background overlay
-            if (e.target.id === 'receiptModal') {
-                closeReceiptBtn();
-            }
-        }
-
-        function closeReceiptBtn() {
-            const modal = document.getElementById('receiptModal');
-            modal.classList.remove('active');
-            setTimeout(() => modal.style.display = 'none', 300);
-        }
-    </script>
+    <script src="{{ asset('js/order-history.js') }}"></script>
 </body>
 </html>
