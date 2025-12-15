@@ -42,20 +42,6 @@
         <div class="pagination" id="pagination" style="margin-top: 20px; display: flex; gap: 5px; justify-content: center;">
             </div>
     </div>
-
-    <style>
-        .users-table td { padding: 12px 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; color: white; display: inline-block; }
-        .status-delivered { background-color: #10b981; } /* Active */
-        .status-cancelled { background-color: #ef4444; } /* Blocked */
-        
-        .action-container { display: flex; gap: 5px; }
-        .btn-view { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid transparent; }
-        .btn-view:hover { opacity: 0.8; }
-        
-        .page-btn { padding: 6px 12px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
-        .page-btn.active { background: #333; color: white; border-color: #333; }
-    </style>
 @endsection
 
 @push('scripts')

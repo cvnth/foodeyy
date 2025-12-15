@@ -6,50 +6,6 @@
     <title>FoodHub - Order History</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
-    <style>
-        .empty-state { text-align: center; padding: 50px 20px; color: #888; }
-        .empty-state i { font-size: 64px; margin-bottom: 15px; color: #ddd; }
-        .btn-browse { background: #e67e22; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; margin-top: 10px; }
-
-        /* Receipt Modal CSS */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: none; justify-content: center; align-items: center;
-            z-index: 9999 !important; 
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        
-        .receipt-box {
-            background: white; width: 90%; max-width: 400px;
-            padding: 25px; border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            position: relative; transform: translateY(20px); transition: transform 0.3s ease;
-        }
-        .modal-overlay.active .receipt-box { transform: translateY(0); }
-
-        .receipt-header { text-align: center; border-bottom: 2px dashed #eee; padding-bottom: 15px; margin-bottom: 15px; }
-        .receipt-header h2 { margin: 0; color: #e67e22; font-family: 'Courier New', monospace; font-weight: bold; }
-        .receipt-meta { font-size: 0.85rem; color: #666; margin-top: 5px; }
-        
-        .receipt-items { max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
-        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-        .receipt-row span:first-child { color: #333; font-weight: 500; }
-        
-        .receipt-divider { border-top: 2px dashed #eee; margin: 10px 0; }
-        
-        .receipt-summary .row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; color: #666; }
-        .receipt-total { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: #333; margin-top: 10px; }
-        
-        .close-modal-btn {
-            position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;
-        }
-        .close-modal-btn:hover { color: #333; }
-
-        .order-card { cursor: pointer; transition: transform 0.2s; }
-        .order-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    </style>
 </head>
 <body>
     <div class="container">

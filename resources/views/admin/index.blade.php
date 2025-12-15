@@ -101,14 +101,4 @@
         </table>
     </div>
 
-    {{-- INLINE CSS FOR BADGES (Ensure this is in your CSS file or here) --}}
-    <style>
-        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; color: white; text-transform: uppercase; }
-        .status-pending { background-color: #f59e0b; }   /* Orange */
-        .status-preparing { background-color: #3b82f6; } /* Blue */
-        .status-delivered { background-color: #10b981; } /* Green */
-        .status-cancelled { background-color: #ef4444; } /* Red */
-        
-        .btn-view:hover i { color: #e67e22 !important; }
-    </style>
 @endsection

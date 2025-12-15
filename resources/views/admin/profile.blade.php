@@ -114,24 +114,4 @@
         </div>
     </div>
 
-    <style>
-        /* Profile specific styles */
-        .profile-container { max-width: 800px; margin: 0 auto; padding-bottom: 50px; }
-        .profile-section { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .profile-section h3 { margin-top: 0; margin-bottom: 20px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
-        .form-group input, .form-group select { 
-            width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; transition: border-color 0.2s; 
-        }
-        .form-group input:focus { border-color: #e67e22; outline: none; box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1); }
-        
-        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; }
-        .btn-cancel { background: white; border: 1px solid #ddd; padding: 10px 20px; border-radius: 6px; cursor: pointer; color: #666; transition: all 0.2s; }
-        .btn-cancel:hover { background: #f9fafb; border-color: #ccc; }
-        
-        .btn-save { background: #e67e22; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; color: white; font-weight: 500; transition: background 0.2s; }
-        .btn-save:hover { background: #d35400; }
-    </style>
 @endsection

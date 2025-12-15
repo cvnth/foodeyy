@@ -6,8 +6,6 @@
 
     <h2>Login</h2>
 
-
-
     {{-- LOGIN FORM --}}
     <form action="{{ route('login') }}" method="POST">
         @csrf

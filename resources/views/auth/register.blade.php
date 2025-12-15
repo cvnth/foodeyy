@@ -2,24 +2,6 @@
 
 @section('form')
 
-{{-- CSS FOR INVISIBLE SCROLLING --}}
-<style>
-    .form-scroll-container {
-        max-height: 85vh; /* Limits height */
-        overflow-y: auto; /* Enables vertical scrolling */
-        width: 100%;
-        
-        /* Hide scrollbar for IE, Edge and Firefox */
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-    }
-
-    /* Hide scrollbar for Chrome, Safari and Opera */
-    .form-scroll-container::-webkit-scrollbar {
-        display: none;
-    }
-</style>
-
     <div class="form-scroll-container">
         <img src="{{ asset('images/logo.png') }}" class="form-logo" alt="Foodeyy Logo" />
         <h2>Sign up</h2>
