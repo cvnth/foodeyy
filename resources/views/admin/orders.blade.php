@@ -9,7 +9,6 @@
     <div class="table-header">
         <h2>Manage Orders</h2>
         <div class="search-box">
-            <i class="material-icons">search</i>
             <input type="text" id="search-orders" placeholder="Search orders (ID or Name)..." onkeyup="debounceSearch()">
         </div>
     </div>

@@ -11,7 +11,7 @@
         <div class="print-header">
             <div class="header-content">
                 <div class="logo-section">
-                    <h1>SUROY SURIGAO</h1>
+                    <h1>FOODEYY</h1>
                     <p>Regional Sales Management Dashboard</p>
                 </div>
                 <div class="meta-section">

@@ -382,13 +382,7 @@ html, body {
     box-shadow: 0 0 0 3px rgba(255, 158, 113, 0.1);
 }
 
-.search-icon {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #8c7265;
-}
+
 
 .menu-grid {
     display: grid;
