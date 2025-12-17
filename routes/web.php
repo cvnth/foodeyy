@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-// --- CONTROLLERS ---
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\AdminMenuItemController;
 use App\Http\Controllers\Admin\AdminUsersController;
