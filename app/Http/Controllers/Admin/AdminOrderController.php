@@ -65,11 +65,17 @@ class AdminOrderController extends Controller
         if ($oldStatus !== $newStatus) {
             $message = "Your order #ORD-" . str_pad($order->id, 6, '0', STR_PAD_LEFT) . " is now " . ucfirst($newStatus) . ".";
             
+            // --- FIX IS HERE ---
+            // We save the message inside a 'data' array so Blade can read $n->data['message']
             Notification::create([
                 'user_id' => $order->user_id,
-                'title'   => 'Order Update',
-                'message' => $message,
-                'type'    => 'info'
+                'type'    => 'App\Notifications\OrderStatusUpdate', // Standard Laravel type convention
+                'data'    => [ 
+                    'message' => $message,
+                    'title'   => 'Order Update',
+                    'order_id' => $order->id
+                ],
+                'read_at' => null
             ]);
         }
 

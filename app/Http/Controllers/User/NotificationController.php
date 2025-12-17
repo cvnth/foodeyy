@@ -14,15 +14,14 @@ class NotificationController extends Controller
     {
         $userId = Auth::id();
 
-        // Fetch notifications sorted by newest first
         $notifications = Notification::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Count unread
+        // FIX: Using 'is_read' (boolean) because 'read_at' does not exist in your DB
         $unreadCount = $notifications->where('is_read', false)->count();
 
-        // Return the view 'Notification.blade.php'
+        // Matches your file name "Notification.blade.php"
         return view('Notification', compact('notifications', 'unreadCount'));
     }
 
@@ -31,6 +30,7 @@ class NotificationController extends Controller
     {
         $userId = Auth::id();
         
+        // FIX: Update 'is_read' to true (1)
         Notification::where('user_id', $userId)
             ->where('is_read', false)
             ->update(['is_read' => true]);

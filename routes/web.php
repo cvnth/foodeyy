@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
     // 1. Dashboard & Menu
     Route::get('/user/dashboard', [UserDashboardController::class, 'index'])->name('user.dashboard');
     Route::get('/user/menu/json', [UserDashboardController::class, 'getMenuJson'])->name('user.menu.json');
-    Route::post('/user/rate-item', [UserDashboardController::class, 'rateItem'])->middleware('auth');
+    Route::post('/user/rate-item', [UserDashboardController::class, 'rateItem']);
 
     // 2. Favorites
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');
@@ -75,13 +75,13 @@ Route::middleware('auth')->group(function () {
     })->name('menu.details');
 
     // ------------------------------------------------
-    //  NOTIFICATIONS SECTION
+    //  NOTIFICATIONS SECTION (FIXED NAMES)
     // ------------------------------------------------
     
-    // 1. View All Notifications Page
+    // 1. View All - Reverted to 'notifications.all' to fix Sidebar error
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.all');
 
-    // 2. Mark All as Read (Action)
+    // 2. Mark Read - Reverted to 'notifications.read'
     Route::get('/notifications/mark-read', [NotificationController::class, 'markAllRead'])->name('notifications.read');
 
 
@@ -89,38 +89,30 @@ Route::middleware('auth')->group(function () {
     //  ADMIN SECTION
     // ------------------------------------------------
     Route::prefix('admin')->name('admin.')->group(function () {
-        
-        // 1. Dashboard & Reports
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
-        // Sales Report
         Route::get('/sales', [AdminSalesController::class, 'index'])->name('sales');
         Route::get('/sales/json', [AdminSalesController::class, 'getSalesData'])->name('sales.json');
 
-        // Admin Profile Management
         Route::get('/profile', [AdminProfileController::class, 'index'])->name('profile');
         Route::put('/profile/update', [AdminProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password');
 
-        // Global Settings
         Route::get('/settings', [AdminSettingsController::class, 'index'])->name('settings');
         Route::put('/settings', [AdminSettingsController::class, 'update'])->name('settings.update');
 
-        // 2. User Management
         Route::get('/users', [AdminUsersController::class, 'index'])->name('users');
         Route::get('/users/json', [AdminUsersController::class, 'apiIndex'])->name('users.json');
         Route::put('/users/{id}', [AdminUsersController::class, 'update'])->name('users.update');
         Route::patch('/users/{id}/toggle-block', [AdminUsersController::class, 'toggleBlock'])->name('users.block');
         Route::delete('/users/{id}', [AdminUsersController::class, 'destroy'])->name('users.destroy');
 
-        // 3. Menu Management
         Route::get('/menu', [AdminMenuItemController::class, 'index'])->name('menu.index');
         Route::get('/menu-items/json', [AdminMenuItemController::class, 'apiIndex'])->name('menu.json');
         Route::post('/menu', [AdminMenuItemController::class, 'store'])->name('menu.store');
         Route::put('/menu/{id}', [AdminMenuItemController::class, 'update'])->name('menu.update');
         Route::delete('/menu/{id}', [AdminMenuItemController::class, 'destroy'])->name('menu.destroy');
 
-        // 4. Orders Management
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders');
         Route::get('/orders/json', [AdminOrderController::class, 'getOrdersJson']);
         Route::patch('/orders/{id}/status', [AdminOrderController::class, 'updateStatus']);
