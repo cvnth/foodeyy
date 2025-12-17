@@ -24,7 +24,7 @@
                     <img src="{{ asset('images/food.png') }}" alt="Promo Dish" />
                     <div class="promo-text">
                         <h3>Experience our delicious new dish</h3>
-                        <p>30% OFF</p>
+                        <p>TRY NOW!! ⸜(｡˃ ᵕ ˂ )⸝♡</p>
                     </div>
                 </div>
             </div>
@@ -34,7 +34,6 @@
             <header>
                 <nav>
                     <ul>
-                        <li><a href="#about">ABOUT US</a></li>
                         <li><a href="{{ route('login') }}" id="loginBtn">LOGIN</a></li>
                         <li><a href="{{ route('register') }}" id="signupBtn">SIGN UP</a></li>
                     </ul>
